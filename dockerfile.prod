@@ -1,15 +1,15 @@
 # Base dependencies layer
-FROM node:24.4.1-alpine3.21 AS base
+FROM node:24-alpine AS base
 
 WORKDIR /usr/src/app
 
-COPY package.json package-lock.json ./
+COPY package.json pnpm-lock.yaml ./
 
-# Install dependencies, skipping lifecycle scripts (like lefthook)
-RUN npm ci --ignore-scripts
+# Install pnpm and dependencies
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
 # Builder - build the application
-FROM node:24.4.1-alpine3.21 AS build
+FROM node:24-alpine AS build
 
 WORKDIR /usr/src/app
 
@@ -17,10 +17,10 @@ COPY --from=base /usr/src/app/node_modules ./node_modules
 COPY . .
 
 # Build the NestJS application
-RUN npm run build
+RUN pnpm run build
 
-# Prune development dependencies
-RUN npm prune --omit=dev
+# Install only production dependencies
+RUN pnpm install --prod --frozen-lockfile
 
 # Remove unnecessary files from node_modules to further reduce size
 RUN find ./node_modules -name "*.md" -type f -delete \
@@ -30,7 +30,7 @@ RUN find ./node_modules -name "*.md" -type f -delete \
   && find ./node_modules -name "tests" -type d -exec rm -rf {} +
 
 # Final image
-FROM node:24.4.1-alpine3.21 AS prod
+FROM node:24-alpine AS prod
 
 # Install system dependencies required for PDF processing
 RUN apk add --no-cache \
