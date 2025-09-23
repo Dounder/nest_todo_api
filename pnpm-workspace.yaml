@@ -1,6 +1,7 @@
+minimumReleaseAge: 1440
+
 onlyBuiltDependencies:
   - '@nestjs/core'
   - '@prisma/client'
   - lefthook
-
-minimumReleaseAge: 1440 # 1 day
+  - unrs-resolver
