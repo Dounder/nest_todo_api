@@ -1,50 +1,6 @@
 services:
-  rest_template_pg:
-    container_name: rest_template_pg
-    image: postgres:17.6
-    restart: always
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-    env_file:
-      - .env
-    environment:
-      POSTGRES_USER: ${PG_USER:-postgres}
-      POSTGRES_PASSWORD: ${PG_PASSWORD:-Abcd@1234}
-      POSTGRES_DB: ${PG_DB:-rest_template_db}
-    ports:
-      - '5432:5432'
-    networks:
-      - rest_template_network
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${PG_USER}']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  rest_template_pgadmin:
-    container_name: rest_template_pgadmin
-    image: dpage/pgadmin4
-    restart: always
-    env_file:
-      - .env
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-Abcd@1234}
-    ports:
-      - '5050:80'
-    depends_on:
-      rest_template_pg:
-        condition: service_healthy
-    networks:
-      - rest_template_network
-    healthcheck:
-      test: ['CMD-SHELL', 'curl -f http://localhost/ || exit 1']
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
   rest_template:
-    container_name: rest_template_api
+    container_name: rest_template
     image: drglasdou/rest_template:latest
     build:
       context: .
@@ -53,9 +9,12 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql://${PG_USER:-postgres}:${PG_PASSWORD:-Abcd@1234}@rest_template_pg:5432/${PG_DB:-rest_template_db}
+      PORT: ${PORT:-4000}
+      STAGE: ${STAGE:-prod}
+      DATABASE_URL: postgres://${PG_USER:-postgres}:${PG_PASSWORD:-Abcd@1234}@rest_template_pg:5432/${PG_DB:-rest_template_db}
+      GRAPHQL_INTROSPECTION: true
     ports:
-      - '4000:3000'
+      - '4000:4000'
     depends_on:
       rest_template_pg:
         condition: service_healthy
@@ -63,14 +22,10 @@ services:
       - rest_template_network
     healthcheck:
       test:
-        ['CMD-SHELL', 'curl -f http://localhost:3000/api/v1/health || exit 1']
+        [
+          'CMD-SHELL',
+          'curl -f -X POST -H "Content-Type: application/json" -d ''{"query":"query HealthCheck { healthCheck { message } }"}'' http://localhost:4000/v1/gql || exit 1',
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
-
-volumes:
-  pg_data:
-
-networks:
-  rest_template_network:
-    driver: bridge

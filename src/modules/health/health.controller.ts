@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Post } from '@nestjs/common';
+import { CustomException } from 'src/exceptions';
 import { TestErrorDto } from './dto';
 import { HealthService } from './health.service';
 
@@ -13,7 +14,10 @@ export class HealthController {
 
   @Get('error')
   throwError() {
-    throw new Error('This is a test error');
+    throw new CustomException({
+      message: 'This is a custom error message',
+      status: HttpStatus.I_AM_A_TEAPOT,
+    });
   }
 
   @Post('error/validation')

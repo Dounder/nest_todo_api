@@ -23,8 +23,6 @@ export class ExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    this.logger.error(`Exception caught: ${JSON.stringify(exception)}`);
-
     // Handle non-HTTP exceptions
     if (!(exception instanceof HttpException)) {
       this.logger.error(`Unhandled exception: ${exception}`, exception instanceof Error ? exception.stack : undefined);
