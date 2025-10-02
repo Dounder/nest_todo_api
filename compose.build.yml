@@ -1,12 +1,12 @@
 services:
-  agritec_portal_name:
+  rest_template_name:
     build:
       context: .
       dockerfile: dockerfile.prod
-    image: agritec/template:1.0.0
+    image: drglasdou/rest_template:1.0.0
 
-  agritec_portal_latest:
+  rest_template_latest:
     build:
       context: .
       dockerfile: dockerfile.prod
-    image: agritec/template:latest
+    image: drglasdou/rest_template:latest

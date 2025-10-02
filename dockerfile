@@ -1,44 +1,43 @@
+# Development Dockerfile for NestJS GraphQL application
+# Uses Node.js 24 Alpine for a lightweight development environment
 FROM node:24-alpine AS development
 
-# Install development tools and dependencies
-RUN apk add --no-cache \
-    bash \
-    curl \
-    git \
-    python3 \
-    make \
-    g++
+# Create necessary directories and set ownership for the node user
+RUN mkdir -p /home/node/app/node_modules /home/node/app/src /home/node/app/dist && \
+    chown -R node:node /home/node/app
 
-# Install pnpm globally
-RUN npm install -g pnpm
-
-# Create app directory with proper permissions
-RUN mkdir -p /home/node/app && chown -R node:node /home/node/app
-
-WORKDIR /home/node/app
-
-# Copy package files as node user
-COPY --chown=node:node package.json ./
-COPY --chown=node:node pnpm-lock.yaml ./
-COPY --chown=node:node pnpm-workspace.yaml ./
-COPY --chown=node:node tsconfig*.json ./
-COPY --chown=node:node nest-cli.json ./
-
-# Switch to node user
-USER node
-
-# Install all dependencies (including devDependencies)
-RUN pnpm install --frozen-lockfile
-
-# Copy application source
-COPY --chown=node:node . .
-
-# Expose ports
-EXPOSE 3000
-EXPOSE 5555
-
-# Development environment
+# Set environment to development
 ENV NODE_ENV=development
 
-# Start dev server
-CMD ["pnpm", "run", "start:dev"]
+# Set working directory
+WORKDIR /home/node/app
+
+# Install pnpm package manager globally
+RUN npm install -g pnpm
+
+# Copy package files for dependency installation
+COPY package.json pnpm-lock.yaml ./
+
+# Install PM2 process manager globally for development
+RUN pnpm add -g pm2
+
+# Install project dependencies
+RUN pnpm install
+
+# Switch to non-root user
+USER node
+
+# Copy application source code
+COPY --chown=node:node . .
+
+# Build the application
+RUN pnpm run build
+
+# Expose port 3000
+EXPOSE 3000
+
+# Set stop signal for graceful shutdown
+STOPSIGNAL SIGINT
+
+# Start the application with PM2 runtime
+CMD ["pm2-runtime","dist/main.js"]

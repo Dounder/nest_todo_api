@@ -1,8 +1,8 @@
 import {
-  ArgumentsHost,
+  type ArgumentsHost,
   BadRequestException,
   Catch,
-  ExceptionFilter,
+  type ExceptionFilter,
   HttpException,
   HttpStatus,
   Logger,
@@ -22,7 +22,6 @@ export class ExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest();
 
     this.logger.error(`Exception caught: ${JSON.stringify(exception)}`);
 
@@ -30,16 +29,12 @@ export class ExceptionsFilter implements ExceptionFilter {
     if (!(exception instanceof HttpException)) {
       this.logger.error(`Unhandled exception: ${exception}`, exception instanceof Error ? exception.stack : undefined);
 
-      const errorResponse = {
+      return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-        timestamp: new Date().toISOString(),
-        path: request.url,
-        method: request.method,
         message: 'Internal server error',
-        errors: ['Internal Server Error'],
-      };
-
-      return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(errorResponse);
+        error: ['Internal Server Error'],
+        timestamp: new Date().toISOString(),
+      });
     }
 
     const status = exception.getStatus();
@@ -52,20 +47,16 @@ export class ExceptionsFilter implements ExceptionFilter {
 
     // Special handling for validation errors
     const isValidationError = exception instanceof BadRequestException && Array.isArray(message);
-    const finalMessage = isValidationError ? 'Validation error' : message;
+    const finalMessage = isValidationError ? 'Validation error' : typeof message === 'string' ? message : 'Error';
     const finalErrors = isValidationError ? message : [error];
 
-    this.logger.error(`HTTP Exception: [${request.method}] ${request.url} - (${status}) - ${JSON.stringify(message)}`);
+    this.logger.error(`HTTP Exception: (${status}) - ${JSON.stringify(message)}`);
 
-    const errorResponse = {
+    return response.status(status).json({
       statusCode: status,
-      timestamp: new Date().toISOString(),
-      path: request.url,
-      method: request.method,
       message: finalMessage,
-      errors: finalErrors,
-    };
-
-    response.status(status).json(errorResponse);
+      error: finalErrors,
+      timestamp: new Date().toISOString(),
+    });
   }
 }
