@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile.prod
-    image: drglasdou/rest_template:1.0.0
+    image: drglasdou/rest_template:${APP_VERSION:-1.0.0}
 
   rest_template_latest:
     build:
