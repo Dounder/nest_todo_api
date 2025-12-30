@@ -10,7 +10,9 @@ const logger = new Logger('Bootstrap');
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({ origin: true }); // Enable CORS for all origins
+  app.enableCors({
+    origin: true, // Allow all origins for local development
+  });
 
   app.setGlobalPrefix('api');
 

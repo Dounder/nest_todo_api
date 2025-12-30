@@ -10,6 +10,9 @@ interface EnvVars {
   DATABASE_URL: string;
   PGADMIN_EMAIL: string;
   PGADMIN_PASSWORD: string;
+  SESSION_SECRET: string;
+  SESSION_COOKIE_NAME: string;
+  SESSION_COOKIE_MAX_AGE: number;
 }
 
 const envSchema = joi
@@ -22,6 +25,10 @@ const envSchema = joi
     DATABASE_URL: joi.string().required(),
     PGADMIN_EMAIL: joi.string().email().default('admin@example.com'),
     PGADMIN_PASSWORD: joi.string().required().default('Abcd@1234'),
+    SESSION_SECRET: joi.string().min(32).required(),
+    SESSION_COOKIE_NAME: joi.string().default('todo_offline'),
+    SESSION_COOKIE_MAX_AGE: joi.number().default(60 * 60 * 24 * 7), // 7 days in seconds
+    SESSION_COOKIE_SECURE: joi.boolean().default(false),
   })
   .unknown(true);
 
@@ -44,5 +51,9 @@ export const envs = {
   pgDb: envVars.POSTGRES_DB,
   databaseUrl: envVars.DATABASE_URL,
   pgAdminEmail: envVars.PGADMIN_EMAIL,
+  sessionSecret: envVars.SESSION_SECRET,
+  sessionCookieName: envVars.SESSION_COOKIE_NAME,
+  sessionCookieMaxAge: envVars.SESSION_COOKIE_MAX_AGE,
   pgAdminPassword: envVars.PGADMIN_PASSWORD,
+  isProd: process.env.NODE_ENV === 'production',
 };
