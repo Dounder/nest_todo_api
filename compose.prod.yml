@@ -1,7 +1,7 @@
 services:
-  rest_template:
-    container_name: rest_template
-    image: drglasdou/rest_template:latest
+  todo_api:
+    container_name: todo_api
+    image: drglasdou/todo_api:latest
     build:
       context: .
       dockerfile: dockerfile.prod
@@ -11,15 +11,15 @@ services:
     environment:
       PORT: ${PORT:-4000}
       STAGE: ${STAGE:-prod}
-      DATABASE_URL: postgres://${PG_USER:-postgres}:${PG_PASSWORD:-Abcd@1234}@rest_template_pg:5432/${PG_DB:-rest_template_db}
+      DATABASE_URL: postgres://${PG_USER:-postgres}:${PG_PASSWORD:-Abcd@1234}@todo_api_pg:5432/${PG_DB:-todo_api_db}
       GRAPHQL_INTROSPECTION: true
     ports:
       - '4000:4000'
     depends_on:
-      rest_template_pg:
+      todo_api_pg:
         condition: service_healthy
     networks:
-      - rest_template_network
+      - todo_api_network
     healthcheck:
       test:
         [

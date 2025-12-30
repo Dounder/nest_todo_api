@@ -24,4 +24,9 @@ export class HealthController {
   throwValidationError(@Body() body: TestErrorDto) {
     return body;
   }
+
+  @Get('db')
+  async checkDatabaseConnection() {
+    return this.healthService.checkDatabaseConnection();
+  }
 }
