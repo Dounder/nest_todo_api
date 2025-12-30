@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
-import { User } from 'prisma/client';
 
 import { PaginationDto, PaginationResponse } from '../common';
 import { CreateUserDto, UpdateUserDto } from './dto';
+import { UserResponse as User } from './interfaces';
 import { UserService } from './user.service';
 
 @Controller('user')

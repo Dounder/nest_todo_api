@@ -6,6 +6,7 @@ CREATE TABLE "todo" (
     "completedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
     "userId" TEXT NOT NULL,
 
     CONSTRAINT "todo_pkey" PRIMARY KEY ("id")
@@ -16,6 +17,10 @@ CREATE TABLE "user" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "username" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );

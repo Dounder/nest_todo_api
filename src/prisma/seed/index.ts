@@ -1,4 +1,5 @@
 import { PrismaPg } from '@prisma/adapter-pg';
+import bcrypt from 'bcryptjs';
 import { Pool } from 'pg';
 
 import { PrismaClient } from 'prisma/client';
@@ -11,13 +12,14 @@ const prisma = new PrismaClient({ adapter });
 
 const seedDatabase = async () => {
   await Promise.all(
-    users.map(async (u) => {
-      await prisma.user.upsert({
-        where: { email: u.email },
-        update: { ...u },
-        create: { ...u },
-      });
-    }),
+    users.map(
+      async (u) =>
+        await prisma.user.upsert({
+          where: { email: u.email },
+          update: { ...u, password: bcrypt.hashSync(u.password, bcrypt.genSaltSync()) },
+          create: { ...u, password: bcrypt.hashSync(u.password, bcrypt.genSaltSync()) },
+        }),
+    ),
   );
 };
 

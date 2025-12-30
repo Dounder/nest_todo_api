@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { User } from 'prisma/client';
+import bcrypt from 'bcryptjs';
 
 import { PrismaService } from 'src/prisma';
 import { ExceptionHandler, PaginationDto, PaginationResponse } from '../common';
+import { USER_FIELDS_TO_OMIT } from './config';
 import { CreateUserDto, UpdateUserDto } from './dto';
+import { UserResponse as User, UserFindOneParams } from './interfaces';
 
 @Injectable()
 export class UserService {
@@ -11,7 +13,12 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
-      const newUser = await this.prisma.user.create({ data: createUserDto });
+      const hashedPassword = bcrypt.hashSync(createUserDto.password, bcrypt.genSaltSync());
+      const newUser = await this.prisma.user.create({
+        data: { ...createUserDto, password: hashedPassword },
+        omit: USER_FIELDS_TO_OMIT,
+      });
+
       return newUser;
     } catch (error) {
       ExceptionHandler.handle({
@@ -30,6 +37,8 @@ export class UserService {
         this.prisma.user.findMany({
           take: limit,
           skip: (page - 1) * limit,
+          omit: USER_FIELDS_TO_OMIT,
+          orderBy: { createdAt: 'desc' },
         }),
         this.prisma.user.count(),
       ]);
@@ -46,9 +55,10 @@ export class UserService {
     }
   }
 
-  async findOne(id: string): Promise<User> {
+  async findOne(id: string, params?: UserFindOneParams): Promise<User> {
     try {
-      const user = await this.prisma.user.findUnique({ where: { id } });
+      const { withPassword } = params || {};
+      const user = await this.prisma.user.findUnique({ where: { id }, omit: withPassword ? {} : USER_FIELDS_TO_OMIT });
 
       if (!user)
         throw new NotFoundException({
@@ -73,6 +83,7 @@ export class UserService {
       const updatedUser = await this.prisma.user.update({
         where: { id: user.id },
         data: updateUserDto,
+        omit: USER_FIELDS_TO_OMIT,
       });
 
       return updatedUser;
