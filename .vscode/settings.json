@@ -39,5 +39,12 @@
     "**/prettier.config.*": true,
     "**/.eslintignore": true,
     "**/.prettierignore": true
+  },
+
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/generated": true,
+    "**/migrations": true
   }
 }

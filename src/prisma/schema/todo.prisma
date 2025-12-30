@@ -4,8 +4,9 @@ model Todo {
   completed   Boolean   @default(false)
   completedAt DateTime?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   userId String
   user   User   @relation(fields: [userId], references: [id])

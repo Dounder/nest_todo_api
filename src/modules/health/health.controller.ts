@@ -26,7 +26,7 @@ export class HealthController {
   }
 
   @Get('db')
-  async checkDatabaseConnection() {
+  checkDatabaseConnection() {
     return this.healthService.checkDatabaseConnection();
   }
 }

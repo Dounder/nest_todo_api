@@ -1,14 +1,12 @@
-import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from 'prisma/client';
 
 import { PrismaService } from 'src/prisma';
-import { PaginationDto, PaginationResponse } from '../common';
+import { ExceptionHandler, PaginationDto, PaginationResponse } from '../common';
 import { CreateUserDto, UpdateUserDto } from './dto';
 
 @Injectable()
 export class UserService {
-  private readonly logger = new Logger(UserService.name);
-
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -16,9 +14,9 @@ export class UserService {
       const newUser = await this.prisma.user.create({ data: createUserDto });
       return newUser;
     } catch (error) {
-      this.logger.error('Failed to create user', error.stack);
-      throw new InternalServerErrorException({
-        status: 500,
+      ExceptionHandler.handle({
+        error,
+        context: 'UserService.create',
         message: 'An error occurred while creating the user.',
       });
     }
@@ -40,9 +38,9 @@ export class UserService {
 
       return { meta: { total, page, lastPage }, data };
     } catch (error) {
-      this.logger.error('Failed to find all users', error.stack);
-      throw new InternalServerErrorException({
-        status: 500,
+      ExceptionHandler.handle({
+        error,
+        context: 'UserService.findAll',
         message: 'An error occurred while retrieving users.',
       });
     }
@@ -60,9 +58,9 @@ export class UserService {
 
       return user;
     } catch (error) {
-      this.logger.error(`Failed to find user with id ${id}`, error.stack);
-      throw new InternalServerErrorException({
-        status: 500,
+      ExceptionHandler.handle({
+        error,
+        context: `UserService.findOne(${id})`,
         message: 'An error occurred while retrieving the user.',
       });
     }
@@ -79,9 +77,9 @@ export class UserService {
 
       return updatedUser;
     } catch (error) {
-      this.logger.error(`Failed to update user with id ${id}`, error.stack);
-      throw new InternalServerErrorException({
-        status: 500,
+      ExceptionHandler.handle({
+        error,
+        context: `UserService.update(${id})`,
         message: 'An error occurred while updating the user.',
       });
     }
@@ -95,9 +93,9 @@ export class UserService {
 
       return { message: `User ${user.username} with id ${id} has been removed.` };
     } catch (error) {
-      this.logger.error(`Failed to remove user with id ${id}`, error.stack);
-      throw new InternalServerErrorException({
-        status: 500,
+      ExceptionHandler.handle({
+        error,
+        context: `UserService.remove(${id})`,
         message: 'An error occurred while removing the user.',
       });
     }
@@ -111,9 +109,9 @@ export class UserService {
 
       return { message: `User ${user.username} with id ${id} has been restored.` };
     } catch (error) {
-      this.logger.error(`Failed to restore user with id ${id}`, error.stack);
-      throw new InternalServerErrorException({
-        status: 500,
+      ExceptionHandler.handle({
+        error,
+        context: `UserService.restore(${id})`,
         message: 'An error occurred while restoring the user.',
       });
     }

@@ -5,7 +5,7 @@ import { PrismaService } from 'src/prisma';
 export class HealthService {
   private readonly logger = new Logger(HealthService.name);
 
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   checkHealth() {
     this.logger.debug('Checking health...');
@@ -14,7 +14,7 @@ export class HealthService {
 
   async checkDatabaseConnection() {
     this.logger.debug('Checking database connection...');
-    await this.prismaService.$queryRaw`SELECT 1`;
+    await this.prisma.$queryRaw`SELECT 1`;
     return { database: 'connected' };
   }
 }
