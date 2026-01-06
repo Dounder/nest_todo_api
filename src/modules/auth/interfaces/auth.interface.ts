@@ -1,6 +1,6 @@
-import { UserResponse } from 'src/modules/user';
+import { UserModel } from 'src/modules/user';
 
 export interface AuthResponse {
-  user: UserResponse;
+  user: UserModel;
   message: string;
 }

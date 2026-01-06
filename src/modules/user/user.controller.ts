@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestj
 
 import { PaginationDto, PaginationResponse } from '../common';
 import { CreateUserDto, UpdateUserDto } from './dto';
-import { UserResponse as User } from './interfaces';
+import { UserModel as User } from './interfaces';
 import { UserService } from './user.service';
 
 @Controller('user')

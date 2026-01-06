@@ -1,6 +1,6 @@
 import { Prisma, User } from 'prisma/client';
 
-export interface UserResponse extends Omit<User, 'password'> {}
+export interface UserModel extends Omit<User, 'password'> {}
 
 export interface UserFindOneParams {
   where: Prisma.UserWhereUniqueInput;

@@ -6,13 +6,13 @@ import { PrismaService } from 'src/prisma';
 import { ExceptionHandler, ObjectManipulator, PaginationDto, PaginationResponse } from '../common';
 import { USER_FIELDS_TO_OMIT } from './config';
 import { CreateUserDto, UpdateUserDto } from './dto';
-import { UserFindOneParams, UserResponse } from './interfaces';
+import { UserFindOneParams, UserModel } from './interfaces';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createUserDto: CreateUserDto): Promise<UserResponse> {
+  async create(createUserDto: CreateUserDto): Promise<UserModel> {
     try {
       const hashedPassword = bcrypt.hashSync(createUserDto.password, bcrypt.genSaltSync());
       const newUser = await this.prisma.user.create({
@@ -30,7 +30,7 @@ export class UserService {
     }
   }
 
-  async findAll(pagination: PaginationDto): Promise<PaginationResponse<UserResponse>> {
+  async findAll(pagination: PaginationDto): Promise<PaginationResponse<UserModel>> {
     try {
       const { page, limit } = pagination;
 
@@ -56,7 +56,7 @@ export class UserService {
     }
   }
 
-  async findBy({ where, withPassword = false }: UserFindOneParams): Promise<UserResponse | User> {
+  async findBy({ where, withPassword = false }: UserFindOneParams): Promise<UserModel | User> {
     try {
       const user = await this.prisma.user.findUnique({ where, omit: withPassword ? {} : USER_FIELDS_TO_OMIT });
 
@@ -76,7 +76,7 @@ export class UserService {
     }
   }
 
-  async validatePassword(username: string, password: string): Promise<UserResponse> {
+  async validatePassword(username: string, password: string): Promise<UserModel> {
     try {
       const user = await this.prisma.user.findUnique({ where: { username } });
 
@@ -95,7 +95,7 @@ export class UserService {
           internal: `Error when validating password for user with username ${username}.`,
         });
 
-      return ObjectManipulator.exclude<User>(user, ['password']) as UserResponse;
+      return ObjectManipulator.exclude<User>(user, ['password']) as UserModel;
     } catch (error) {
       ExceptionHandler.handle({
         error,
@@ -105,7 +105,7 @@ export class UserService {
     }
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserResponse> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserModel> {
     try {
       const user = await this.findBy({ where: { id } });
 

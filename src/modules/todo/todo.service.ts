@@ -1,17 +1,22 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Todo } from 'prisma/client';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma';
 
 import { ExceptionHandler, PaginationDto, PaginationResponse } from '../common';
+import { UserModel } from '../user';
+import { TODO_FIELDS_TO_OMIT } from './config';
 import { CreateTodoDto, UpdateTodoDto } from './dto';
+import { TodoModel } from './todo.interface';
 
 @Injectable()
 export class TodoService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createTodoDto: CreateTodoDto): Promise<Todo> {
+  async create(createTodoDto: CreateTodoDto, user: UserModel): Promise<TodoModel> {
     try {
-      const todo = await this.prisma.todo.create({ data: createTodoDto });
+      const todo = await this.prisma.todo.create({
+        data: { ...createTodoDto, userId: user.id },
+        omit: TODO_FIELDS_TO_OMIT,
+      });
       return todo;
     } catch (error) {
       ExceptionHandler.handle({
@@ -22,7 +27,7 @@ export class TodoService {
     }
   }
 
-  async findAll(pagination: PaginationDto): Promise<PaginationResponse<Todo>> {
+  async findAll(pagination: PaginationDto, user: UserModel): Promise<PaginationResponse<TodoModel>> {
     try {
       const { page, limit } = pagination;
 
@@ -30,8 +35,11 @@ export class TodoService {
         this.prisma.todo.findMany({
           take: limit,
           skip: (page - 1) * limit,
+          where: { userId: user.id },
+          orderBy: { createdAt: 'desc' },
+          omit: TODO_FIELDS_TO_OMIT,
         }),
-        this.prisma.todo.count(),
+        this.prisma.todo.count({ where: { userId: user.id } }),
       ]);
 
       const lastPage = Math.ceil(total / limit);
@@ -46,9 +54,9 @@ export class TodoService {
     }
   }
 
-  async findOne(id: string): Promise<Todo> {
+  async findOne(id: string, user: UserModel): Promise<TodoModel> {
     try {
-      const todo = await this.prisma.todo.findUnique({ where: { id } });
+      const todo = await this.prisma.todo.findUnique({ where: { id, userId: user.id }, omit: TODO_FIELDS_TO_OMIT });
 
       if (!todo)
         throw new NotFoundException({
@@ -66,13 +74,14 @@ export class TodoService {
     }
   }
 
-  async update(id: string, updateTodoDto: UpdateTodoDto): Promise<Todo> {
+  async update(id: string, updateTodoDto: UpdateTodoDto, user: UserModel): Promise<TodoModel> {
     try {
-      const todo = await this.findOne(id);
+      const todo = await this.findOne(id, user);
 
       const updatedTodo = await this.prisma.todo.update({
-        where: { id: todo.id },
+        where: { id: todo.id, userId: user.id },
         data: updateTodoDto,
+        omit: TODO_FIELDS_TO_OMIT,
       });
 
       return updatedTodo;
@@ -85,10 +94,10 @@ export class TodoService {
     }
   }
 
-  async remove(id: string): Promise<{ message: string }> {
+  async remove(id: string, user: UserModel): Promise<{ message: string }> {
     try {
-      const todo = await this.findOne(id);
-      await this.prisma.todo.delete({ where: { id: todo.id } });
+      const todo = await this.findOne(id, user);
+      await this.prisma.todo.delete({ where: { id: todo.id, userId: user.id } });
       return { message: `Todo with id ${id} has been removed.` };
     } catch (error) {
       ExceptionHandler.handle({

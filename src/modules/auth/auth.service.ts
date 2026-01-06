@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { IronSession, IronSessionData } from 'iron-session';
 import { ExceptionHandler } from '../common';
-import { CreateUserDto, UserResponse, UserService } from '../user';
+import { CreateUserDto, UserModel, UserService } from '../user';
 import { LoginDto } from './dtos';
 import { AuthResponse } from './interfaces';
 
@@ -39,7 +39,7 @@ export class AuthService {
     }
   }
 
-  private async setUserSession(session: IronSession<IronSessionData>, user: UserResponse): Promise<void> {
+  private async setUserSession(session: IronSession<IronSessionData>, user: UserModel): Promise<void> {
     session.user = user;
     return await session.save();
   }
