@@ -1,11 +1,4 @@
 {
-  // Disable ESLint and Prettier extensions to use Biome instead
-  "extensions.disabled": [
-    "esbenp.prettier-vscode",
-    "ms-vscode.vscode-eslint",
-    "dbaeumer.vscode-eslint"
-  ],
-
   // Biome configuration
   "editor.defaultFormatter": "biomejs.biome",
   "editor.formatOnSave": true,
@@ -45,6 +38,7 @@
     "**/node_modules": true,
     "**/dist": true,
     "**/generated": true,
-    "**/migrations": true
+    "**/migrations": true,
+    "**/.github": true
   }
 }
