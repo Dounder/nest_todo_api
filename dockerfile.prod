@@ -22,7 +22,7 @@ ENV PRISMA_CLI_BINARY_TARGETS="linux-musl-arm64-openssl-3.0.x,linux-musl-openssl
 RUN pnpm prisma generate && \
   pnpm run build && \
   # Remove non-linux engines from generated client
-  find ./generated/client -type f -name "*.node" ! -name "*linux-musl*" -delete 2>/dev/null || true
+  find ./src/prisma/generated -type f -name "*.node" ! -name "*linux-musl*" -delete 2>/dev/null || true
 
 # Production dependencies stage - uses pnpm for space efficiency
 FROM node:24-alpine AS deps
@@ -94,8 +94,8 @@ COPY --from=builder --chown=nonroot:nonroot /usr/src/app/prisma.config.ts ./pris
 # Copy Prisma schema from custom location
 COPY --from=builder --chown=nonroot:nonroot /usr/src/app/src/prisma ./src/prisma
 
-# Copy generated Prisma client from custom output location (only necessary files)
-COPY --from=builder --chown=nonroot:nonroot /usr/src/app/generated ./generated
+# Copy generated Prisma client from custom output location (place it under src/prisma to match tsconfig)
+COPY --from=builder --chown=nonroot:nonroot /usr/src/app/src/prisma/generated ./src/prisma/generated
 
 # Set production environment variables
 ENV NODE_ENV=production \
