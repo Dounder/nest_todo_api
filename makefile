@@ -21,7 +21,7 @@ prod: ## Start the application in production mode
 # Docker Commands
 docker-build: ## Build Docker images with version from package.json
 	@echo "Building Docker images..."
-	@APP_VERSION=$$(node -p "require('./package.json').version") docker-compose -f compose.build.yml build
+	@APP_VERSION=$$(node -p "require('./package.json').version.replace(/[^A-Za-z0-9_.-]/g,'-')") docker-compose -f compose.build.yml build
 
 docker-run: ## Run the application with Docker Compose (development)
 	docker-compose -f compose.yml up -d
