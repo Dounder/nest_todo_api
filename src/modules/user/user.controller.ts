@@ -21,7 +21,7 @@ export class UserController {
 
   @Get(':id')
   findOne(@Param('id') id: string): Promise<User> {
-    return this.userService.findOne(id);
+    return this.userService.findBy({ where: { id } });
   }
 
   @Patch(':id')

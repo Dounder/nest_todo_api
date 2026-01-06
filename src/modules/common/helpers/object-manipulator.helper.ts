@@ -38,7 +38,7 @@ export class ObjectManipulator {
    * @returns A new object with the specified keys excluded.
    * @throws {TypeError} If the object is invalid or keys is not an array.
    */
-  static exclude<T extends object>(obj: T, keys: (keyof T)[]): Partial<T> {
+  static exclude<T extends object>(obj: T, keys: (keyof T)[]): Omit<T, keyof T> {
     // Input validation
     if (!obj || typeof obj !== 'object') {
       throw new TypeError('Invalid object provided for exclusion. Expected a non-null object.');
@@ -60,7 +60,7 @@ export class ObjectManipulator {
       }
     }
 
-    return result as Partial<T>;
+    return result as Omit<T, keyof T>;
   }
 
   /**
@@ -87,5 +87,11 @@ export class ObjectManipulator {
         console.error(`Failed to delete property ${String(key)}:`, error);
       }
     });
+  }
+
+  static toString(obj: Record<string, unknown>): string {
+    return Object.entries(obj)
+      .map(([key, value]) => `${key}=${String(value)}`)
+      .join(', ');
   }
 }

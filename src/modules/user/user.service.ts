@@ -1,17 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
-
+import { User } from 'prisma/client';
 import { PrismaService } from 'src/prisma';
-import { ExceptionHandler, PaginationDto, PaginationResponse } from '../common';
+
+import { ExceptionHandler, ObjectManipulator, PaginationDto, PaginationResponse } from '../common';
 import { USER_FIELDS_TO_OMIT } from './config';
 import { CreateUserDto, UpdateUserDto } from './dto';
-import { UserResponse as User, UserFindOneParams } from './interfaces';
+import { UserFindOneParams, UserResponse } from './interfaces';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<UserResponse> {
     try {
       const hashedPassword = bcrypt.hashSync(createUserDto.password, bcrypt.genSaltSync());
       const newUser = await this.prisma.user.create({
@@ -29,7 +30,7 @@ export class UserService {
     }
   }
 
-  async findAll(pagination: PaginationDto): Promise<PaginationResponse<User>> {
+  async findAll(pagination: PaginationDto): Promise<PaginationResponse<UserResponse>> {
     try {
       const { page, limit } = pagination;
 
@@ -55,30 +56,58 @@ export class UserService {
     }
   }
 
-  async findOne(id: string, params?: UserFindOneParams): Promise<User> {
+  async findBy({ where, withPassword = false }: UserFindOneParams): Promise<UserResponse | User> {
     try {
-      const { withPassword } = params || {};
-      const user = await this.prisma.user.findUnique({ where: { id }, omit: withPassword ? {} : USER_FIELDS_TO_OMIT });
+      const user = await this.prisma.user.findUnique({ where, omit: withPassword ? {} : USER_FIELDS_TO_OMIT });
 
       if (!user)
         throw new NotFoundException({
           status: 404,
-          message: `User with id ${id} not found.`,
+          message: `User with ${ObjectManipulator.toString(where)} not found.`,
         });
 
       return user;
     } catch (error) {
       ExceptionHandler.handle({
         error,
-        context: `UserService.findOne(${id})`,
+        context: `UserService.findBy(${ObjectManipulator.toString({ ...where, withPassword })})`,
         message: 'An error occurred while retrieving the user.',
       });
     }
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async validatePassword(username: string, password: string): Promise<UserResponse> {
     try {
-      const user = await this.findOne(id);
+      const user = await this.prisma.user.findUnique({ where: { username } });
+
+      if (!user)
+        throw new NotFoundException({
+          status: HttpStatus.NOT_FOUND,
+          message: `User with username ${username} not found.`,
+        });
+
+      const isValidPassword = bcrypt.compareSync(password, user.password);
+
+      if (!isValidPassword)
+        throw new UnauthorizedException({
+          status: HttpStatus.UNAUTHORIZED,
+          message: `Invalid credentials.`,
+          internal: `Error when validating password for user with username ${username}.`,
+        });
+
+      return ObjectManipulator.exclude<User>(user, ['password']) as UserResponse;
+    } catch (error) {
+      ExceptionHandler.handle({
+        error,
+        context: `UserService.validatePassword(${username})`,
+        message: 'An error occurred while retrieving the user.',
+      });
+    }
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserResponse> {
+    try {
+      const user = await this.findBy({ where: { id } });
 
       const updatedUser = await this.prisma.user.update({
         where: { id: user.id },
@@ -98,7 +127,7 @@ export class UserService {
 
   async remove(id: string): Promise<{ message: string }> {
     try {
-      const user = await this.findOne(id);
+      const user = await this.findBy({ where: { id } });
 
       await this.prisma.user.update({ where: { id: user.id }, data: { deletedAt: new Date() } });
 
@@ -114,7 +143,7 @@ export class UserService {
 
   async restore(id: string): Promise<{ message: string }> {
     try {
-      const user = await this.findOne(id);
+      const user = await this.findBy({ where: { id } });
 
       await this.prisma.user.update({ where: { id: user.id }, data: { deletedAt: null } });
 

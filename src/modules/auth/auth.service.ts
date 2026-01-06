@@ -1,14 +1,46 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { IronSession, IronSessionData } from 'iron-session';
+import { ExceptionHandler } from '../common';
+import { CreateUserDto, UserResponse, UserService } from '../user';
+import { LoginDto } from './dtos';
+import { AuthResponse } from './interfaces';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
-  // constructor() {}
+  constructor(readonly _user: UserService) {}
 
-  getStatus(): string {
-    this.logger.log('AuthService getStatus called');
-    return 'Authentication service is running';
+  async login({ username, password }: LoginDto, session: IronSession<IronSessionData>): Promise<AuthResponse> {
+    this.logger.log(`Login attempt for user: ${username}`);
+
+    const user = await this._user.validatePassword(username, password);
+
+    if (!user) throw new UnauthorizedException({ status: HttpStatus.UNAUTHORIZED, message: 'Invalid credentials' });
+
+    await this.setUserSession(session, user);
+
+    this.logger.log(`User ${username} logged in successfully`);
+    return { user, message: 'Login successful' };
+  }
+
+  async register(dto: CreateUserDto): Promise<AuthResponse> {
+    try {
+      const newUser = await this._user.create(dto);
+
+      this.logger.log(`User registered successfully: ${dto.username}`);
+      return { user: newUser, message: 'Registration successful' };
+    } catch (error) {
+      ExceptionHandler.handle({
+        error,
+        context: `AuthService.register({ ${dto.username}, ${dto.email}, **** })`,
+        message: 'Registration failed',
+      });
+    }
+  }
+
+  private async setUserSession(session: IronSession<IronSessionData>, user: UserResponse): Promise<void> {
+    session.user = user;
+    return await session.save();
   }
 }
-1;

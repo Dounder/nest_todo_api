@@ -4,6 +4,7 @@ interface HandleExceptionParams {
   error: unknown;
   context: string;
   message?: string;
+  internal?: string;
 }
 
 export class ExceptionHandler {
@@ -13,9 +14,10 @@ export class ExceptionHandler {
    * @param params.context - The context where the error occurred (e.g., 'UserService.create')
    * @param params.message - Optional custom message for internal server errors
    */
-  static handle({ error, context, message }: HandleExceptionParams): never {
+  static handle({ error, context, message, internal }: HandleExceptionParams): never {
     const logger = new Logger(context);
     logger.error(`${message || 'No additional message provided.'}`);
+    logger.error(`Internal details: ${internal || 'N/A'}`);
 
     // If it's already an HttpException, re-throw it as-is
     if (error instanceof HttpException) throw error;

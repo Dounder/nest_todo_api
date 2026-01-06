@@ -1,7 +1,8 @@
-import { User } from 'prisma/client';
+import { Prisma, User } from 'prisma/client';
 
 export interface UserResponse extends Omit<User, 'password'> {}
 
 export interface UserFindOneParams {
-  withPassword: boolean;
+  where: Prisma.UserWhereUniqueInput;
+  withPassword?: boolean;
 }
