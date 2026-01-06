@@ -1,6 +1,6 @@
 {
   "name": "rest",
-  "version": "1.0.0",
+  "version": "1.0.0+1",
   "description": "Nest REST template",
   "author": "dr.glasdou",
   "private": true,
