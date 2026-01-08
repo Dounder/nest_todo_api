@@ -1,3 +1,25 @@
+## Version 1.0.0+3 [2026-01-08]
+
+> **Included Commits**: `git log --oneline v1.0.0+2..HEAD`
+> **Tag**: `v1.0.0+3`
+
+### Added
+
+- None
+
+### Changed
+
+- None
+
+### Removed
+
+- None
+
+### Fixed
+
+- **Infrastructure** (Commit: `d583082`):
+  - Environment configuration: Updated `envs.config.ts` to use `PG_DB` instead of `POSTGRES_DB`
+
 ## Version 1.0.0+2 [2026-01-08]
 
 > **Included Commits**: `git log --oneline v1.0.0+1..HEAD`
